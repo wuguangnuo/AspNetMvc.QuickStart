@@ -31,16 +31,9 @@ namespace AspNetMvc.QuickStart.Controllers
             return items;
         }
 
-        // GET: Students
-        public ActionResult Index()
-        {
-            ViewBag.MajorList = GetMajorList();
-            return View(db.Students.ToList());
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Index(string Major, string Name)
+        public ActionResult Index(string Major, string Name, int PageIndex)
         {
             var students = db.Students as IQueryable<Student>;
             if (!String.IsNullOrEmpty(Name))
@@ -53,8 +46,60 @@ namespace AspNetMvc.QuickStart.Controllers
                 students = students.Where(m => m.Major == Major);
             }
 
+
+            var recordCount = students.Count();
+            var pageCount = GetPageCount(recordCount);
+            if (PageIndex >= pageCount && pageCount >= 1)
+            {
+                PageIndex = pageCount - 1;
+            }
+
+            students = students.OrderBy(m => m.Name)
+                 .Skip(PageIndex * PAGE_SIZE).Take(PAGE_SIZE);
+
+            ViewBag.PageIndex = PageIndex;
+            ViewBag.PageCount = pageCount;
+
             ViewBag.MajorList = GetMajorList();
             return View(students.ToList());
+        }
+
+        private static readonly int PAGE_SIZE = 3;
+
+        private int GetPageCount(int recordCount)
+        {
+            int pageCount = recordCount / PAGE_SIZE;
+            if (recordCount % PAGE_SIZE != 0)
+            {
+                pageCount += 1;
+            }
+            return pageCount;
+        }
+
+        private List<Student> GetPagedDataSource(IQueryable<Student> students,
+        int pageIndex, int recordCount)
+        {
+            var pageCount = GetPageCount(recordCount);
+            if (pageIndex >= pageCount && pageCount >= 1)
+            {
+                pageIndex = pageCount - 1;
+            }
+
+            return students.OrderBy(m => m.Name).Skip(pageIndex * PAGE_SIZE).Take(PAGE_SIZE).ToList();
+        }
+
+        // GET: Students
+        public ActionResult Index()
+        {
+            var students = db.Students as IQueryable<Student>;
+            var recordCount = students.Count();
+            var pageCount = GetPageCount(recordCount);
+
+            ViewBag.PageIndex = 0;
+            ViewBag.PageCount = pageCount;
+
+            ViewBag.MajorList = GetMajorList();
+            return View(GetPagedDataSource(students, 0, recordCount));
         }
 
         // GET: Students/Details/5
