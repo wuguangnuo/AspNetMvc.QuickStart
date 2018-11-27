@@ -59,6 +59,22 @@ namespace AspNetMvc.QuickStart.Controllers
             return View(student);
         }
 
+        // 性别集合，公共方法
+        private List<SelectListItem> GetGenderList()
+        {
+            return new List<SelectListItem>() {
+                new SelectListItem
+                {
+                    Text = "男",
+                    Value = "1"
+                },new SelectListItem
+                {
+                    Text = "女",
+                    Value = "0"
+                }
+            };
+        }
+
         // GET: Students/Edit/5
         public ActionResult Edit(int? id)
         {
@@ -71,6 +87,7 @@ namespace AspNetMvc.QuickStart.Controllers
             {
                 return HttpNotFound();
             }
+            ViewBag.GenderList = GetGenderList();
             return View(student);
         }
 
@@ -87,6 +104,7 @@ namespace AspNetMvc.QuickStart.Controllers
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
+            ViewBag.GenderList = GetGenderList();
             return View(student);
         }
 
