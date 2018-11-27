@@ -10,6 +10,7 @@ using AspNetMvc.QuickStart.Models;
 
 namespace AspNetMvc.QuickStart.Controllers
 {
+    [Authorize]
     public class StudentsController : Controller
     {
         private StudentDbContext db = new StudentDbContext();
