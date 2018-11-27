@@ -15,10 +15,46 @@ namespace AspNetMvc.QuickStart.Controllers
     {
         private StudentDbContext db = new StudentDbContext();
 
+        private List<SelectListItem> GetMajorList()
+        {
+            var majors = db.Students.OrderBy(m => m.Major).Select(m => m.Major).Distinct();
+
+            var items = new List<SelectListItem>();
+            foreach (string major in majors)
+            {
+                items.Add(new SelectListItem
+                {
+                    Text = major,
+                    Value = major
+                });
+            }
+            return items;
+        }
+
         // GET: Students
         public ActionResult Index()
         {
+            ViewBag.MajorList = GetMajorList();
             return View(db.Students.ToList());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Index(string Major, string Name)
+        {
+            var students = db.Students as IQueryable<Student>;
+            if (!String.IsNullOrEmpty(Name))
+            {
+                students = students.Where(m => m.Name.Contains(Name));
+            }
+
+            if (!String.IsNullOrEmpty(Major))
+            {
+                students = students.Where(m => m.Major == Major);
+            }
+
+            ViewBag.MajorList = GetMajorList();
+            return View(students.ToList());
         }
 
         // GET: Students/Details/5
